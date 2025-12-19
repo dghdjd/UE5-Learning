@@ -24,8 +24,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	//Dependency Injection using blueprint, Since we are sure that our owner has only one Mover
+	//We can just use FindComponentByClass<UMover> instead;
 	UFUNCTION(BlueprintCallable)
-	void SetMover(UMover* NewMover);
+	void SetMoverBP(UMover* NewMover);
+	void SetMover();
 	
 
 private:

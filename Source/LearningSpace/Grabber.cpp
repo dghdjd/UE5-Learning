@@ -9,6 +9,7 @@ UGrabber::UGrabber()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
+	SetComponentTickEnabled(false);
 
 	// ...
 }
@@ -43,27 +44,32 @@ bool UGrabber::GetGrabbableInReach(FHitResult& HitResult) const
 
 }
 
+
+
 void UGrabber::Grab()
 {
 	if (!PhysicsHandle) return;
 
-	//FVector Start = GetComponentLocation();
-	//FVector End = Start + GetForwardVector() * GrabDistance;
-	//UWorld* World = GetWorld();
+
 
 	//DrawDebugLine(World, Start, End, FColor::Red, false, 5.f);
 	//DrawDebugSphere(World, End, 10, 10, FColor::Red, false, 5.f);
 
 	FHitResult HitResult;
-	//FCollisionShape Sphere = FCollisionShape::MakeSphere(GrabRadius);
 	bool HasHit = GetGrabbableInReach(HitResult);
 
 	if (HasHit)
 	{
-		//UE_LOG(LogTemp, Display, TEXT("Hit!!!"));
-		DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10, 10, FColor::Green, false, 5.f);
+		//DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10, 10, FColor::Green, false, 5.f);
+		//DrawDebugSphere(GetWorld(), HitResult.Location, 10, 10, FColor::Blue, false, 5.f);
+		//DrawDebugSphere(GetWorld(), HitResult.GetActor()->GetActorLocation(), 10, 10, FColor::Red, false, 5.f);
+
+		SetComponentTickEnabled(true);// Enable Ticking
+		UE_LOG(LogTemp, Warning, TEXT("Ticking Enabled"));
+
 		Rotation = HitResult.GetActor()->GetActorRotation();
-		PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, HitResult.ImpactPoint, Rotation);
+
+		PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, HitResult.GetActor()->GetActorLocation(), GetComponentRotation());
 
 		HitResult.GetActor()->Tags.Add("Grabbed");
 		Grabbing = true;
@@ -77,6 +83,9 @@ void UGrabber::Grab()
 void UGrabber::Release()
 {
 	if (!PhysicsHandle || !PhysicsHandle->GetGrabbedComponent()) return;
+
+	SetComponentTickEnabled(false);
+	UE_LOG(LogTemp, Warning, TEXT("Ticking Disabled"));
 
 	PhysicsHandle->GetGrabbedComponent()->GetOwner()->Tags.Remove("Grabbed");
 	PhysicsHandle->ReleaseComponent();
@@ -111,8 +120,7 @@ void UGrabber::SetupGrab()
 	}
 	GrabDistance = SpringArm->TargetArmLength * 3;
 	HoldDistance = SpringArm->TargetArmLength * 2;
-	UE_LOG(LogTemp, Warning, TEXT("Grab Distance %f"), GrabDistance);
-	UE_LOG(LogTemp, Warning, TEXT("Hold Distance %f"), HoldDistance);
+
 }
 
 
@@ -121,12 +129,17 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (Grabbing)
+	if (!Grabbing)
 	{
-		if (!PhysicsHandle) return;
-		FVector TargetLocation = GetComponentLocation() + GetForwardVector() * HoldDistance;
-		PhysicsHandle->SetTargetLocationAndRotation(TargetLocation, GetComponentRotation());
+
+		return;
 	}
+
+	if (!PhysicsHandle) return;
+	FVector TargetLocation = GetComponentLocation() + GetForwardVector() * HoldDistance;
+	PhysicsHandle->SetTargetLocationAndRotation(TargetLocation, GetComponentRotation());
+
+	
 
 }
 

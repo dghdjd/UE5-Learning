@@ -15,10 +15,11 @@ UTrigger::UTrigger()
 void UTrigger::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("Tigger is alive"));
+
+	SetMover();
 	if(!Mover) UE_LOG(LogTemp, Warning, TEXT("Mover Not Found!!!"));
-	// ...
-	OnComponentBeginOverlap.AddDynamic(this, &UTrigger::OnOverlapBegin);
+
+	OnComponentBeginOverlap.AddDynamic(this, &UTrigger::OnOverlapBegin); //Bind event
 	OnComponentEndOverlap.AddDynamic(this, &UTrigger::OnOverlapEnd);
 }
 
@@ -32,38 +33,43 @@ AActor* UTrigger::FindAcceptableActor(TArray<AActor*> Actors) const
 	return nullptr;
 }
 
-void UTrigger::SetMover(UMover* NewMover)
+void UTrigger::SetMoverBP(UMover* NewMover)
 {
 	Mover = NewMover;
+}
+void UTrigger::SetMover()
+{
+	Mover = GetOwner()->FindComponentByClass<UMover>();
 }
 
 void UTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
-	// Runs once when something enters
-	TArray<AActor*> Actors;
-	GetOverlappingActors(Actors);
-	AActor* AcceptableActor = FindAcceptableActor(Actors);
-	if (AcceptableActor)
-	{
-		if (Mover) Mover->Move();
-		else UE_LOG(LogTemp, Warning, TEXT("Mover Not Found!!!"));
-	}
+	// Not efficient !!
+	//TArray<AActor*> Actors;
+	//GetOverlappingActors(Actors);
+	//AActor* AcceptableActor = FindAcceptableActor(Actors);
+	//if (AcceptableActor)
+	//{
+	//	if (Mover)   //!!! Move only if its not grabbed
+	//	{
+	//		Mover->SetShouldMove(true);
+	//	}
+	//	else UE_LOG(LogTemp, Warning, TEXT("Mover Not Found!!!"));
+	//}
+
+	UE_LOG(LogTemp, Warning, TEXT("OnOverlapBegin!!!"));
+	if (OtherActor->ActorHasTag(AcceptableTag) && Mover) Mover->SetMoverShouldMove(true);
+
+
 }
 
 void UTrigger::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnOverlapEnd!!!"));
-	TArray<AActor*> Actors;
-	GetOverlappingActors(Actors);
-	AActor* AcceptableActor = FindAcceptableActor(Actors);
-	if (!AcceptableActor)
-	{
-		if (Mover) Mover->UnMove();
-	}
-	
+	if (OtherActor->ActorHasTag(AcceptableTag) && Mover) Mover->SetMoverShouldMove(false);
 }
 
 

@@ -8,8 +8,12 @@ UMover::UMover()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
+	SetComponentTickEnabled(false);
 	PrimaryComponentTick.bCanEverTick = true;
+	
 
+
+	//UE_LOG(LogTemp, Error, TEXT("Mover %s is alive"), *GetOwner()->GetActorNameOrLabel());
 	// ...
 }
 
@@ -19,48 +23,62 @@ void UMover::BeginPlay()
 {
 	Super::BeginPlay();
 
-	StartLocation = GetOwner()->GetActorLocation();
+	MoverStartLocation = GetOwner()->GetActorLocation();
+
+	MoverSpeed = FVector::Dist(MoverStartLocation, MoverStartLocation + MoverMoveOffset) / MoverMoveTime;
 
 	// ...
 
 }
 
+void UMover::UpdateLocation(FVector& CurrLocation, FVector TargetLocation, float DeltaTime)
+{
+	
+	
+	FVector NewLocation = FMath::VInterpConstantTo(CurrLocation, TargetLocation, DeltaTime, MoverSpeed);
+
+	GetOwner()->SetActorLocation(NewLocation);
+}
+
+void UMover::SetMoverShouldMove(bool m)
+{
+	MoverShouldMove = m;
+	
+	UE_LOG(LogTemp, Error, TEXT(" %s is Setting Tick"), *this->GetOwner()->GetFullName());
+	SetComponentTickEnabled(true);
+}
 
 // Called every frame
 void UMover::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (ShouldMove)
+
+	FVector CurrLocation = GetOwner()->GetActorLocation();
+	FVector TargetLocation;
+	
+
+	if (MoverShouldMove)
 	{
-		FVector CurrLocation = GetOwner()->GetActorLocation();
-		FVector TargetLocation = StartLocation + MoveOffset;
-		float Speed = FVector::Dist(StartLocation, TargetLocation) / MoveTime;
-
-		FVector NewLocation = FMath::VInterpConstantTo(CurrLocation, TargetLocation, DeltaTime, Speed);
-
-		GetOwner()->SetActorLocation(NewLocation);
-
+		TargetLocation = MoverStartLocation + MoverMoveOffset;
+		UpdateLocation(CurrLocation, TargetLocation, DeltaTime);
 	}
 	else
 	{
-		FVector CurrLocation = GetOwner()->GetActorLocation();
-		FVector TargetLocation = StartLocation + MoveOffset;
-		float Speed = FVector::Dist(StartLocation, TargetLocation) / MoveTime;
+		TargetLocation = MoverStartLocation;
+		UpdateLocation(CurrLocation, TargetLocation, DeltaTime);
+	}
 
-		FVector NewLocation = FMath::VInterpConstantTo(CurrLocation, StartLocation, DeltaTime, Speed);
-
-		GetOwner()->SetActorLocation(NewLocation);
+	if (FVector::Dist(CurrLocation, TargetLocation) <= MoverDistTolerance)
+	{
+		SetComponentTickEnabled(false);
+		UE_LOG(LogTemp, Warning, TEXT("Mover stopped ticking"));
 	}
 	// ...
 }
 
-void UMover::Move()
-{
-	ShouldMove = true;
-}
 
-void UMover::UnMove()
-{
-	ShouldMove = false;
-}
+
+
+
+
 

@@ -26,18 +26,24 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void Move();
-	void UnMove();
+	void SetMoverShouldMove(bool Move);
+	
 
 private:
 
-	bool ShouldMove = false;
+	bool MoverShouldMove = false;
 
 	UPROPERTY(EditAnywhere)
-	FVector MoveOffset;
+	FVector MoverMoveOffset;
 
 	UPROPERTY(EditAnywhere)
-	float MoveTime = 4;
+	float MoverMoveTime = 4;
 
-	FVector StartLocation;
+	float MoverSpeed = 0;
+
+	float MoverDistTolerance = 3.f;
+
+	FVector MoverStartLocation;
+
+	void UpdateLocation(FVector& CurrLocation, FVector TargetLocation, float DeltaTime);
 };
