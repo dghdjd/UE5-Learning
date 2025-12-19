@@ -8,9 +8,9 @@ UMover::UMover()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	SetComponentTickEnabled(false);
-	PrimaryComponentTick.bCanEverTick = true;
 	
+	PrimaryComponentTick.bCanEverTick = true;
+	SetComponentTickEnabled(false);
 
 
 	//UE_LOG(LogTemp, Error, TEXT("Mover %s is alive"), *GetOwner()->GetActorNameOrLabel());

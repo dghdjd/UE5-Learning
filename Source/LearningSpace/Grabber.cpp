@@ -129,11 +129,6 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!Grabbing)
-	{
-
-		return;
-	}
 
 	if (!PhysicsHandle) return;
 	FVector TargetLocation = GetComponentLocation() + GetForwardVector() * HoldDistance;

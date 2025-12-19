@@ -37,7 +37,7 @@ private:
 	FVector MoverMoveOffset;
 
 	UPROPERTY(EditAnywhere)
-	float MoverMoveTime = 4;
+	float MoverMoveTime = 4.f;
 
 	float MoverSpeed = 0;
 
